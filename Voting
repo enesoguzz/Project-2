@@ -1,0 +1,257 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h> 
+#include <string.h> 
+#include <stdlib.h>
+
+int yesCount = 0, noCount = 0, abstainedCount = 0;
+int i;
+
+void castvote(int index);
+void votesCount(void);
+void loadFile(void);
+void saveFile(void);
+void changeVote(int index);
+void changePassword(int index);
+
+struct student {
+    char id[15];
+    char password[15];
+    int vote;
+    int isVoted;
+} s[4];
+
+int main()
+{
+    loadFile();
+
+    for (int i = 0; i < 4; i++)
+    {
+        if (s[i].vote == 1)
+        {
+            yesCount++;
+        }
+        else if (s[i].vote == 2)
+        {
+            noCount++;
+        }
+        else if (s[i].vote == 3)
+        {
+            abstainedCount++;
+        }
+    }
+
+    int loginChoice;
+    do
+    {
+        printf("\n1. Sign In");
+        printf("\n2. Vote Results");
+        printf("\n0. Exit");
+        printf("\nPlease enter your choice : ");
+        scanf("%d", &loginChoice);
+        switch (loginChoice) {
+        case 1:
+        {
+            char id[15];
+            char password[15];
+
+            printf("\nEnter your id:");
+            scanf("%s", &id);
+            printf("Enter your password:");
+            scanf("%s", &password);
+            int loggedStudent = -1;
+
+            for (int i = 0; i < 4; i++) {
+                if (strcmp(id, s[i].id) == 0 && strcmp(password, s[i].password) == 0) {
+                    loggedStudent = i;
+                    break;
+                }
+            }
+            if (loggedStudent != -1) {
+                printf("\n\n ###### Welcome to the voting screen #####");
+                int choice;
+                do
+                {
+                    printf("\n\n 1. Cast the Vote");
+                    printf("\n 2. Change your password");
+                    printf("\n 3. Change your vote");
+                    printf("\n 4. Look votes count");
+                    printf("\n 0. Exit");
+                    printf("\n Please enter your choice : ");
+                    scanf("%d", &choice);
+                    switch (choice)
+                    {
+                    case 1:
+                        if (s[loggedStudent].isVoted == 0)
+                        {
+                            castvote(loggedStudent);
+                            s[loggedStudent].isVoted = 1;
+                        }
+                        else
+                        {
+                            printf("\n you already voted, if you want you can change your vote");
+                        }
+
+                        break;
+                    case 2:
+                        changePassword(loggedStudent);
+
+
+                        break;
+                    case 3:
+                        changeVote(loggedStudent);
+                        break;
+                    case 4:
+                        votesCount();
+                        break;
+                    default:
+                        choice = 0;
+                    }
+                } while (choice != 0);
+            }
+            else
+            {
+                printf("\nLogin failed!\n");
+            }
+            break;
+        }
+        case 2:
+            votesCount();
+            break;
+        default:
+            loginChoice = 0;
+            break;
+        }
+    } while (loginChoice != 0);
+
+    saveFile();
+
+
+    return 0;
+}
+
+void castvote(int loggedStudent) {
+
+    int choice;
+    printf("\nCHOICE YOUR OPTION:");
+    printf("\n1. Yes");
+    printf("\n2. No");
+    printf("\n3. Abstain");
+    printf("\nInput your choice (1, 2, 3) : ");
+    scanf_s("%d", &choice);
+    switch (choice) {
+    case 1:
+        yesCount++;
+        s[loggedStudent].vote = 1;
+        break;
+    case 2:
+        noCount++;
+        s[loggedStudent].vote = 2;
+        break;
+    case 3:
+        abstainedCount++;
+        s[loggedStudent].vote = 3;
+        break;
+    default: printf("\n Error: Wrong Choice !! Please retry");
+    }
+    printf("\n thanks for vote !!");
+}
+
+void votesCount() {
+    printf("\n\n##### Voting Statics ####");
+    printf("\n Yes - %d", yesCount);
+    printf("\n No - %d", noCount);
+    printf("\n Abstained - %d\n", abstainedCount);
+
+    if (yesCount > 2)
+    {
+        printf("\nYES WINNING RIGHT NOW\n");
+    }
+    else if (noCount > 2)
+    {
+        printf("\nNO WINNING RIGHT NOW\n");
+    }
+    else if (yesCount == 2 && noCount == 2)
+    {
+        printf("\n THERE IS A DRAW\n");
+    }
+}
+
+
+void loadFile()
+{
+
+    int i;
+    FILE* fptr;
+    fptr = (fopen("student.txt", "r"));
+    if (fptr == NULL) {
+        printf("Error!");
+        exit(1);
+    }
+    for (i = 0; i < 4; ++i)
+    {
+        fscanf(fptr, "\nId:%s \nPassword:%s \nVote:%d \nIsVoted:%d", &s[i].id, &s[i].password, &s[i].vote, &s[i].isVoted);
+    }
+    fclose(fptr);
+}
+
+void saveFile()
+{
+    int i = 0;
+    FILE* fptr;
+    fptr = (fopen("student.txt", "w"));
+    if (fptr == NULL) {
+        printf("Error!");
+        exit(1);
+    }
+    for (i = 0; i < 4; ++i)
+    {
+        fprintf(fptr, "\nId:%s \nPassword:%s \nVote:%d \nIsVoted:%d", &s[i].id, &s[i].password, s[i].vote, s[i].isVoted);
+    }
+    fclose(fptr);
+}
+
+void changeVote(int loggedStudent)
+{
+    if (s[loggedStudent].vote == 1)
+    {
+        yesCount--;
+    }
+    else if (s[loggedStudent].vote == 2)
+    {
+        noCount--;
+    }
+    else if (s[loggedStudent].vote == 3)
+    {
+        abstainedCount--;
+    }
+
+    int newVote;
+    printf("\nEnter your new vote: ");
+    scanf("%d", &newVote);
+    s[loggedStudent].vote = newVote;
+
+    if (s[loggedStudent].vote == 1)
+    {
+        yesCount++;
+    }
+    else if (s[loggedStudent].vote == 2)
+    {
+        noCount++;
+    }
+    else if (s[loggedStudent].vote == 3)
+    {
+        abstainedCount++;
+    }
+    printf("\nThe new vote is: %d\n", newVote);
+
+}
+
+void changePassword(int loggedStudent)
+{
+    char newPassword[15];
+    printf("\nEnter new password: ");
+    scanf("%s", &newPassword);
+    strcpy(s[loggedStudent].password, newPassword);
+    printf("\nThe new password is: %s\n", newPassword);
+
+}
